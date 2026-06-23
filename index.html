@@ -16,29 +16,36 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#1e3a8a',
-                        secondary: '#64748b',
-                        accent: '#3b82f6',
-                        dark: '#0f172a',
-                        light: '#f8fafc',
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        accent: '#06b6d4',
+                        dark: '#0a0a0a',
+                        darker: '#050505',
+                        card: '#111111',
+                        surface: '#1a1a1a',
+                        border: '#2a2a2a',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         serif: ['Playfair Display', 'serif'],
                     },
                     animation: {
-                        'fade-in-up': 'fadeInUp 0.8s ease-out',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
                         'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
                     },
                     keyframes: {
                         fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
                         },
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-20px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)' },
+                            '50%': { boxShadow: '0 0 40px rgba(99, 102, 241, 0.6)' },
                         }
                     }
                 }
@@ -47,45 +54,74 @@
     </script>
     
     <style>
+        * { scrollbar-width: thin; scrollbar-color: #6366f1 #0a0a0a; }
+        *::-webkit-scrollbar { width: 8px; }
+        *::-webkit-scrollbar-track { background: #0a0a0a; }
+        *::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 4px; }
+        
+        body {
+            background: #0a0a0a;
+            color: #e5e5e5;
+        }
+        
         .gradient-text {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #8b5cf6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .glass-effect {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(17, 17, 17, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
+        .glow-border {
+            position: relative;
+        }
+        .glow-border::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, #6366f1, #06b6d4, #8b5cf6);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .glow-border:hover::before { opacity: 1; }
+        
         .skill-bar {
-            transition: width 1.5s ease-out;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
         }
-        
         .hover-lift:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(99, 102, 241, 0.15);
         }
         
         .timeline-line {
-            background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
+            background: linear-gradient(to bottom, #6366f1, #06b6d4, #8b5cf6);
         }
         
         .blob {
             position: absolute;
-            filter: blur(40px);
+            filter: blur(80px);
             z-index: -1;
-            opacity: 0.4;
+            opacity: 0.15;
         }
         
         .typing-cursor::after {
             content: '|';
             animation: blink 1s infinite;
+            color: #6366f1;
         }
         
         @keyframes blink {
@@ -95,114 +131,173 @@
         
         .scroll-reveal {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
         .scroll-reveal.active {
             opacity: 1;
             transform: translateY(0);
         }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-content {
+            background: #111111;
+            border: 1px solid #2a2a2a;
+            border-radius: 24px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        .interest-card, .project-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .interest-card:hover, .project-card:hover {
+            transform: translateY(-4px);
+            border-color: #6366f1;
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #06b6d4);
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .image-grid img {
+            border-radius: 12px;
+            border: 1px solid #2a2a2a;
+            transition: transform 0.3s;
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .image-grid img:hover {
+            transform: scale(1.05);
+            border-color: #6366f1;
+        }
     </style>
 </head>
-<body class="font-sans text-slate-700 bg-slate-50 antialiased overflow-x-hidden">
+<body class="font-sans text-gray-300 bg-darker antialiased overflow-x-hidden">
 
     <!-- Navigation -->
     <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
-        <div class="glass-effect shadow-sm">
+        <div class="glass-effect">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-20">
                     <div class="flex-shrink-0 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg animate-pulse-glow">
                             SP
                         </div>
-                        <span class="font-bold text-2xl text-primary tracking-tight">Saqlain<span class="text-secondary">Pasha</span></span>
+                        <span class="font-bold text-2xl text-white tracking-tight">Saqlain<span class="text-gray-500">Pasha</span></span>
                     </div>
                     
                     <div class="hidden md:flex space-x-8 items-center">
-                        <a href="#home" class="text-slate-600 hover:text-primary font-medium transition-colors relative group">
-                            Home
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-                        </a>
-                        <a href="#about" class="text-slate-600 hover:text-primary font-medium transition-colors relative group">
-                            About
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-                        </a>
-                        <a href="#skills" class="text-slate-600 hover:text-primary font-medium transition-colors relative group">
-                            Skills
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-                        </a>
-                        <a href="#experience" class="text-slate-600 hover:text-primary font-medium transition-colors relative group">
-                            Experience
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-                        </a>
-                        <a href="#projects" class="text-slate-600 hover:text-primary font-medium transition-colors relative group">
-                            Projects
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-                        </a>
-                        <a href="#contact" class="bg-primary text-white px-6 py-2.5 rounded-full font-medium hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <a href="#home" class="nav-link text-gray-400 hover:text-white font-medium transition-colors">Home</a>
+                        <a href="#about" class="nav-link text-gray-400 hover:text-white font-medium transition-colors">About</a>
+                        <a href="#skills" class="nav-link text-gray-400 hover:text-white font-medium transition-colors">Skills</a>
+                        <a href="#experience" class="nav-link text-gray-400 hover:text-white font-medium transition-colors">Experience</a>
+                        <a href="#projects" class="nav-link text-gray-400 hover:text-white font-medium transition-colors">Projects</a>
+                        <a href="#contact" class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-2.5 rounded-full font-medium hover:shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-0.5">
                             Contact Me
                         </a>
                     </div>
                     
-                    <button class="md:hidden text-slate-600 hover:text-primary" onclick="toggleMobileMenu()">
+                    <button class="md:hidden text-gray-400 hover:text-white" onclick="toggleMobileMenu()">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
             </div>
         </div>
         
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden glass-effect border-t border-slate-200">
+        <div id="mobile-menu" class="hidden md:hidden glass-effect border-t border-border">
             <div class="px-4 pt-2 pb-6 space-y-2">
-                <a href="#home" class="block px-3 py-2 text-slate-600 hover:text-primary font-medium">Home</a>
-                <a href="#about" class="block px-3 py-2 text-slate-600 hover:text-primary font-medium">About</a>
-                <a href="#skills" class="block px-3 py-2 text-slate-600 hover:text-primary font-medium">Skills</a>
-                <a href="#experience" class="block px-3 py-2 text-slate-600 hover:text-primary font-medium">Experience</a>
-                <a href="#projects" class="block px-3 py-2 text-slate-600 hover:text-primary font-medium">Projects</a>
+                <a href="#home" class="block px-3 py-2 text-gray-400 hover:text-white font-medium">Home</a>
+                <a href="#about" class="block px-3 py-2 text-gray-400 hover:text-white font-medium">About</a>
+                <a href="#skills" class="block px-3 py-2 text-gray-400 hover:text-white font-medium">Skills</a>
+                <a href="#experience" class="block px-3 py-2 text-gray-400 hover:text-white font-medium">Experience</a>
+                <a href="#projects" class="block px-3 py-2 text-gray-400 hover:text-white font-medium">Projects</a>
                 <a href="#contact" class="block px-3 py-2 text-primary font-bold">Contact Me</a>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section id="home" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-        <!-- Background Blobs -->
-        <div class="blob bg-blue-300 w-96 h-96 rounded-full top-20 -left-20 animate-float"></div>
-        <div class="blob bg-slate-300 w-80 h-80 rounded-full bottom-20 -right-20 animate-float" style="animation-delay: 2s;"></div>
-        <div class="blob bg-blue-200 w-64 h-64 rounded-full top-1/2 left-1/3 animate-float" style="animation-delay: 4s;"></div>
+    <section id="home" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+        <div class="blob bg-primary w-[500px] h-[500px] rounded-full top-20 -left-40 animate-float"></div>
+        <div class="blob bg-secondary w-[400px] h-[400px] rounded-full bottom-20 -right-40 animate-float" style="animation-delay: 2s;"></div>
+        <div class="blob bg-accent w-[300px] h-[300px] rounded-full top-1/2 left-1/3 animate-float" style="animation-delay: 4s;"></div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div class="order-2 md:order-1 text-center md:text-left animate-fade-in-up">
-                    <div class="inline-block px-4 py-2 bg-blue-100 text-primary rounded-full text-sm font-semibold mb-6 border border-blue-200">
-                        <i class="fas fa-map-marker-alt mr-2"></i>Bengaluru, India
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-full text-sm font-semibold mb-6 text-primary">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        Bengaluru, India
                     </div>
                     
-                    <h1 class="text-5xl md:text-7xl font-bold text-dark mb-6 leading-tight">
+                    <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
                         Hi, I'm <span class="gradient-text">Saqlain</span>
                     </h1>
                     
-                    <div class="text-2xl md:text-3xl text-secondary font-light mb-6 h-16">
+                    <div class="text-2xl md:text-3xl text-gray-500 font-light mb-6 h-16">
                         <span id="typing-text" class="typing-cursor"></span>
                     </div>
                     
-                    <p class="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0">
-                        IT Support and Service Desk Professional with <strong>2+ years</strong> of experience delivering Level 1 technical support across enterprise environments. Proficient in Active Directory, Microsoft 365, Azure fundamentals, and Power BI analytics.
+                    <p class="text-lg text-gray-400 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0">
+                        IT Support and Service Desk Professional with <strong class="text-white">2+ years</strong> of experience delivering Level 1 technical support across enterprise environments. Proficient in Active Directory, Microsoft 365, Azure, and Power BI.
                     </p>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                        <a href="#contact" class="bg-primary text-white px-8 py-4 rounded-full font-semibold hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <a href="#contact" class="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-full font-semibold hover:shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
                             <i class="fas fa-paper-plane"></i>
                             Hire Me
                         </a>
-                        <a href="#projects" class="bg-white text-primary border-2 border-primary px-8 py-4 rounded-full font-semibold hover:bg-blue-50 transition-all flex items-center justify-center gap-2">
+                        <a href="#projects" class="bg-surface text-white border border-border px-8 py-4 rounded-full font-semibold hover:border-primary transition-all flex items-center justify-center gap-2">
                             <i class="fas fa-eye"></i>
                             View Projects
                         </a>
                     </div>
                     
-                    <div class="mt-12 flex items-center justify-center md:justify-start gap-6 text-slate-400">
+                    <div class="mt-12 flex items-center justify-center md:justify-start gap-6 text-gray-500">
                         <a href="https://linkedin.com/in/saqlain-pashaa" target="_blank" class="hover:text-primary transition-colors text-2xl">
                             <i class="fab fa-linkedin"></i>
                         </a>
@@ -217,95 +312,111 @@
                 
                 <div class="order-1 md:order-2 flex justify-center animate-fade-in-up" style="animation-delay: 0.2s;">
                     <div class="relative">
-                        <div class="absolute inset-0 bg-primary rounded-3xl transform rotate-6 opacity-20"></div>
-                        <div class="absolute inset-0 bg-blue-400 rounded-3xl transform -rotate-3 opacity-20"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-3xl transform rotate-6 opacity-20 blur-xl"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-accent to-primary rounded-3xl transform -rotate-3 opacity-20 blur-xl"></div>
                         <img src="profile.png" alt="Saqlain Pasha" 
-                             class="relative w-80 h-96 md:w-96 md:h-[500px] object-cover rounded-3xl shadow-2xl border-4 border-white">
+                             class="relative w-80 h-96 md:w-96 md:h-[500px] object-cover rounded-3xl shadow-2xl border-2 border-border">
                         
-                        <!-- Floating Badge -->
-                        <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 animate-float">
+                        <!-- Floating Badge 1 -->
+                        <div class="absolute -bottom-6 -left-6 bg-card p-4 rounded-2xl shadow-xl border border-border animate-float">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-primary">
+                                <div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                                     <i class="fas fa-award text-xl"></i>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-slate-500">Experience</p>
-                                    <p class="font-bold text-dark">2+ Years</p>
+                                    <p class="text-sm text-gray-500">Experience</p>
+                                    <p class="font-bold text-white">2+ Years</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Floating Badge 2 -->
-                        <div class="absolute -top-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 animate-float" style="animation-delay: 1s;">
+                        <!-- ============================================ -->
+                        <!-- ACCENTURE LOGO BADGE - OPTION 1 (IMAGE) -->
+                        <!-- ============================================ -->
+                        <!-- 
+                            INSTRUCTION: 
+                            1. Download Accenture logo PNG with transparent background
+                            2. Save as "accenture-logo.png" in same folder as this HTML
+                            3. The logo will automatically appear in the badge below
+                        -->
+                        <div class="absolute -top-6 -right-6 bg-card p-4 rounded-2xl shadow-xl border border-border animate-float" style="animation-delay: 1s;">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                                    <i class="fas fa-building text-xl"></i>
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden p-1">
+                                    <!-- 
+                                        If you have the image file, use this line:
+                                        <img src="accenture-logo.png" alt="Accenture" class="w-full h-full object-contain">
+                                        
+                                        If you DON'T have the image yet, use this placeholder:
+                                    -->
+                                    <img src="accenture-logo.png" alt="Accenture" class="w-full h-full object-contain" 
+                                         onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-building text-[#A100FF] text-xl\'></i>';">
                                 </div>
                                 <div>
-                                    <p class="text-sm text-slate-500">Currently at</p>
-                                    <p class="font-bold text-dark">Accenture</p>
+                                    <p class="text-sm text-gray-500">Currently at</p>
+                                    <p class="font-bold text-white">Accenture</p>
                                 </div>
                             </div>
                         </div>
+                        <!-- ============================================ -->
+                        
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Scroll Indicator -->
         <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <a href="#about" class="text-slate-400 hover:text-primary transition-colors">
+            <a href="#about" class="text-gray-600 hover:text-primary transition-colors">
                 <i class="fas fa-chevron-down text-2xl"></i>
             </a>
         </div>
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-24 bg-white relative">
+    <section id="about" class="py-24 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid md:grid-cols-2 gap-16 items-center">
                 <div class="scroll-reveal">
                     <div class="relative">
                         <img src="about.jpg" alt="Saqlain Working" 
-                             class="w-full h-[500px] object-cover rounded-3xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent rounded-3xl opacity-60"></div>
+                             class="w-full h-[500px] object-cover rounded-3xl shadow-2xl border border-border grayscale hover:grayscale-0 transition-all duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent rounded-3xl opacity-60"></div>
                         <div class="absolute bottom-8 left-8 text-white">
-                            <p class="text-sm font-medium mb-2">Based in</p>
+                            <p class="text-sm font-medium mb-2 text-primary">Based in</p>
                             <p class="text-2xl font-bold">Bengaluru, India</p>
-                            <p class="text-blue-200">Open to Opportunities</p>
+                            <p class="text-gray-300">Open to Opportunities</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="scroll-reveal">
                     <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">About Me</h2>
-                    <h3 class="text-4xl font-bold text-dark mb-6">IT Professional with Data Analytics Expertise</h3>
+                    <h3 class="text-4xl font-bold text-white mb-6">IT Professional with Data Analytics Expertise</h3>
                     
-                    <div class="space-y-4 text-slate-600 leading-relaxed mb-8">
+                    <div class="space-y-4 text-gray-400 leading-relaxed mb-8">
                         <p>
-                            Results-driven IT Support and Service Desk Professional with 2+ years of experience delivering Level 1 technical support across enterprise environments. Currently working at <strong>Accenture Solutions Pvt. Ltd.</strong>, providing end-user support by troubleshooting application, system, access, and desktop-related issues.
+                            Results-driven IT Support and Service Desk Professional with 2+ years of experience delivering Level 1 technical support across enterprise environments. Currently working at <strong class="text-white">Accenture Solutions Pvt. Ltd.</strong>, providing end-user support by troubleshooting application, system, access, and desktop-related issues.
                         </p>
                         <p>
-                            Proficient in Active Directory, Microsoft 365, Azure fundamentals, ServiceNow, Jira Service Management, and Windows systems. Skilled in incident management, user account administration, remote support, and SLA-driven ticket resolution. Strong communicator with a track record of cross-functional collaboration and accurate technical documentation.
+                            Proficient in Active Directory, Microsoft 365, Azure fundamentals, ServiceNow, Jira Service Management, and Windows systems. Skilled in incident management, user account administration, remote support, and SLA-driven ticket resolution.
                         </p>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-6 mb-8">
-                        <div class="border-l-4 border-primary pl-4">
-                            <p class="text-3xl font-bold text-dark">50+</p>
-                            <p class="text-slate-500 text-sm">Tickets Resolved Daily</p>
+                        <div class="bg-card border border-border p-5 rounded-2xl glow-border">
+                            <p class="text-3xl font-bold text-white">50+</p>
+                            <p class="text-gray-500 text-sm">Tickets Resolved Daily</p>
                         </div>
-                        <div class="border-l-4 border-accent pl-4">
-                            <p class="text-3xl font-bold text-dark">99%</p>
-                            <p class="text-slate-500 text-sm">SLA Compliance</p>
+                        <div class="bg-card border border-border p-5 rounded-2xl glow-border">
+                            <p class="text-3xl font-bold text-white">99%</p>
+                            <p class="text-gray-500 text-sm">SLA Compliance</p>
                         </div>
-                        <div class="border-l-4 border-primary pl-4">
-                            <p class="text-3xl font-bold text-dark">3</p>
-                            <p class="text-slate-500 text-sm">Power BI Projects</p>
+                        <div class="bg-card border border-border p-5 rounded-2xl glow-border">
+                            <p class="text-3xl font-bold text-white">3</p>
+                            <p class="text-gray-500 text-sm">Power BI Projects</p>
                         </div>
-                        <div class="border-l-4 border-accent pl-4">
-                            <p class="text-3xl font-bold text-dark">6</p>
-                            <p class="text-slate-500 text-sm">Certifications</p>
+                        <div class="bg-card border border-border p-5 rounded-2xl glow-border">
+                            <p class="text-3xl font-bold text-white">6</p>
+                            <p class="text-gray-500 text-sm">Certifications</p>
                         </div>
                     </div>
                     
@@ -318,26 +429,25 @@
     </section>
 
     <!-- Skills Section -->
-    <section id="skills" class="py-24 bg-slate-50 relative overflow-hidden">
-        <div class="blob bg-blue-200 w-96 h-96 rounded-full -top-20 -right-20 opacity-30"></div>
+    <section id="skills" class="py-24 relative overflow-hidden">
+        <div class="blob bg-primary w-[400px] h-[400px] rounded-full -top-20 -right-20 opacity-10"></div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center mb-16 scroll-reveal">
                 <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">Technical Expertise</h2>
-                <h3 class="text-4xl font-bold text-dark mb-4">Skills & Competencies</h3>
-                <p class="text-slate-600 max-w-2xl mx-auto">
-                    Proficient in IT service management, system administration, cloud fundamentals, and data analytics tools essential for modern enterprise environments.
+                <h3 class="text-4xl font-bold text-white mb-4">Skills & Competencies</h3>
+                <p class="text-gray-500 max-w-2xl mx-auto">
+                    Proficient in IT service management, system administration, cloud fundamentals, and data analytics tools.
                 </p>
             </div>
             
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- IT Support -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover-lift scroll-reveal border border-slate-100">
-                    <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center text-primary text-2xl mb-6">
+                <div class="bg-card border border-border p-8 rounded-2xl hover-lift scroll-reveal glow-border">
+                    <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-2xl mb-6">
                         <i class="fas fa-headset"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-4">IT Support</h4>
-                    <ul class="space-y-2 text-slate-600">
+                    <h4 class="text-xl font-bold text-white mb-4">IT Support</h4>
+                    <ul class="space-y-2 text-gray-400">
                         <li class="flex items-center gap-2"><i class="fas fa-check text-primary text-sm"></i> Windows 10/11 & macOS</li>
                         <li class="flex items-center gap-2"><i class="fas fa-check text-primary text-sm"></i> Hardware Troubleshooting</li>
                         <li class="flex items-center gap-2"><i class="fas fa-check text-primary text-sm"></i> Remote Support (Quick Assist)</li>
@@ -346,131 +456,126 @@
                     </ul>
                     <div class="mt-6">
                         <div class="flex justify-between text-sm mb-2">
-                            <span class="font-medium">Proficiency</span>
+                            <span class="font-medium text-gray-300">Proficiency</span>
                             <span class="text-primary font-bold">95%</span>
                         </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-primary h-2 rounded-full skill-bar" style="width: 0%" data-width="95%"></div>
+                        <div class="w-full bg-surface rounded-full h-2">
+                            <div class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full skill-bar" style="width: 0%" data-width="95%"></div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- System Administration -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover-lift scroll-reveal border border-slate-100" style="transition-delay: 0.1s;">
-                    <div class="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 text-2xl mb-6">
+                <div class="bg-card border border-border p-8 rounded-2xl hover-lift scroll-reveal glow-border" style="transition-delay: 0.1s;">
+                    <div class="w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center text-secondary text-2xl mb-6">
                         <i class="fas fa-server"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-4">System Administration</h4>
-                    <ul class="space-y-2 text-slate-600">
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-indigo-600 text-sm"></i> Active Directory</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-indigo-600 text-sm"></i> User Onboarding/Offboarding</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-indigo-600 text-sm"></i> Password Reset & Account Unlock</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-indigo-600 text-sm"></i> Access Management</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-indigo-600 text-sm"></i> Azure Fundamentals</li>
+                    <h4 class="text-xl font-bold text-white mb-4">System Administration</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-secondary text-sm"></i> Active Directory</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-secondary text-sm"></i> User Onboarding/Offboarding</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-secondary text-sm"></i> Password Reset & Account Unlock</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-secondary text-sm"></i> Access Management</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-secondary text-sm"></i> Azure Fundamentals</li>
                     </ul>
                     <div class="mt-6">
                         <div class="flex justify-between text-sm mb-2">
-                            <span class="font-medium">Proficiency</span>
-                            <span class="text-indigo-600 font-bold">90%</span>
+                            <span class="font-medium text-gray-300">Proficiency</span>
+                            <span class="text-secondary font-bold">90%</span>
                         </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-indigo-600 h-2 rounded-full skill-bar" style="width: 0%" data-width="90%"></div>
+                        <div class="w-full bg-surface rounded-full h-2">
+                            <div class="bg-gradient-to-r from-secondary to-primary h-2 rounded-full skill-bar" style="width: 0%" data-width="90%"></div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Data Analytics -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover-lift scroll-reveal border border-slate-100" style="transition-delay: 0.2s;">
-                    <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center text-green-600 text-2xl mb-6">
+                <div class="bg-card border border-border p-8 rounded-2xl hover-lift scroll-reveal glow-border" style="transition-delay: 0.2s;">
+                    <div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center text-accent text-2xl mb-6">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-4">Data Analytics</h4>
-                    <ul class="space-y-2 text-slate-600">
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-600 text-sm"></i> Power BI & Dashboards</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-600 text-sm"></i> SQL & Data Modeling</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-600 text-sm"></i> Python for Analysis</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-600 text-sm"></i> Excel Advanced</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-green-600 text-sm"></i> Data Quality Audits</li>
+                    <h4 class="text-xl font-bold text-white mb-4">Data Analytics</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-accent text-sm"></i> Power BI & Dashboards</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-accent text-sm"></i> SQL & Data Modeling</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-accent text-sm"></i> Python for Analysis</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-accent text-sm"></i> Excel Advanced</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-accent text-sm"></i> Data Quality Audits</li>
                     </ul>
                     <div class="mt-6">
                         <div class="flex justify-between text-sm mb-2">
-                            <span class="font-medium">Proficiency</span>
-                            <span class="text-green-600 font-bold">90%</span>
+                            <span class="font-medium text-gray-300">Proficiency</span>
+                            <span class="text-accent font-bold">90%</span>
                         </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-green-600 h-2 rounded-full skill-bar" style="width: 0%" data-width="90%"></div>
+                        <div class="w-full bg-surface rounded-full h-2">
+                            <div class="bg-gradient-to-r from-accent to-primary h-2 rounded-full skill-bar" style="width: 0%" data-width="90%"></div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Microsoft 365 & Cloud -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover-lift scroll-reveal border border-slate-100">
-                    <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-2xl mb-6">
+                <div class="bg-card border border-border p-8 rounded-2xl hover-lift scroll-reveal glow-border">
+                    <div class="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 text-2xl mb-6">
                         <i class="fab fa-microsoft"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-4">Microsoft 365 & Cloud</h4>
-                    <ul class="space-y-2 text-slate-600">
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-600 text-sm"></i> Exchange Online</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-600 text-sm"></i> Microsoft Teams</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-600 text-sm"></i> Outlook Troubleshooting</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-600 text-sm"></i> SharePoint Basics</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-600 text-sm"></i> Google Workspace</li>
+                    <h4 class="text-xl font-bold text-white mb-4">Microsoft 365 & Cloud</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400 text-sm"></i> Exchange Online</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400 text-sm"></i> Microsoft Teams</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400 text-sm"></i> Outlook Troubleshooting</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400 text-sm"></i> SharePoint Basics</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400 text-sm"></i> Google Workspace</li>
                     </ul>
                     <div class="mt-6">
                         <div class="flex justify-between text-sm mb-2">
-                            <span class="font-medium">Proficiency</span>
-                            <span class="text-blue-600 font-bold">92%</span>
+                            <span class="font-medium text-gray-300">Proficiency</span>
+                            <span class="text-blue-400 font-bold">92%</span>
                         </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-blue-600 h-2 rounded-full skill-bar" style="width: 0%" data-width="92%"></div>
+                        <div class="w-full bg-surface rounded-full h-2">
+                            <div class="bg-gradient-to-r from-blue-400 to-primary h-2 rounded-full skill-bar" style="width: 0%" data-width="92%"></div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Networking -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover-lift scroll-reveal border border-slate-100" style="transition-delay: 0.1s;">
-                    <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 text-2xl mb-6">
+                <div class="bg-card border border-border p-8 rounded-2xl hover-lift scroll-reveal glow-border" style="transition-delay: 0.1s;">
+                    <div class="w-14 h-14 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 text-2xl mb-6">
                         <i class="fas fa-network-wired"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-4">Networking</h4>
-                    <ul class="space-y-2 text-slate-600">
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-600 text-sm"></i> TCP/IP Fundamentals</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-600 text-sm"></i> DNS & DHCP Basics</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-600 text-sm"></i> LAN Support</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-600 text-sm"></i> Remote Access Issues</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-600 text-sm"></i> Authentication Failures</li>
+                    <h4 class="text-xl font-bold text-white mb-4">Networking</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400 text-sm"></i> TCP/IP Fundamentals</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400 text-sm"></i> DNS & DHCP Basics</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400 text-sm"></i> LAN Support</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400 text-sm"></i> Remote Access Issues</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400 text-sm"></i> Authentication Failures</li>
                     </ul>
                     <div class="mt-6">
                         <div class="flex justify-between text-sm mb-2">
-                            <span class="font-medium">Proficiency</span>
-                            <span class="text-purple-600 font-bold">85%</span>
+                            <span class="font-medium text-gray-300">Proficiency</span>
+                            <span class="text-purple-400 font-bold">85%</span>
                         </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-purple-600 h-2 rounded-full skill-bar" style="width: 0%" data-width="85%"></div>
+                        <div class="w-full bg-surface rounded-full h-2">
+                            <div class="bg-gradient-to-r from-purple-400 to-secondary h-2 rounded-full skill-bar" style="width: 0%" data-width="85%"></div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- ITSM & Core Competencies -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover-lift scroll-reveal border border-slate-100" style="transition-delay: 0.2s;">
-                    <div class="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 text-2xl mb-6">
+                <div class="bg-card border border-border p-8 rounded-2xl hover-lift scroll-reveal glow-border" style="transition-delay: 0.2s;">
+                    <div class="w-14 h-14 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-400 text-2xl mb-6">
                         <i class="fas fa-tasks"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-dark mb-4">ITSM & Core Competencies</h4>
-                    <ul class="space-y-2 text-slate-600">
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-600 text-sm"></i> ServiceNow & Jira</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-600 text-sm"></i> ITIL Framework</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-600 text-sm"></i> Incident & Problem Management</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-600 text-sm"></i> Root Cause Analysis</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-600 text-sm"></i> Technical Documentation</li>
+                    <h4 class="text-xl font-bold text-white mb-4">ITSM & Core Competencies</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-400 text-sm"></i> ServiceNow & Jira</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-400 text-sm"></i> ITIL Framework</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-400 text-sm"></i> Incident & Problem Management</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-400 text-sm"></i> Root Cause Analysis</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-orange-400 text-sm"></i> Technical Documentation</li>
                     </ul>
                     <div class="mt-6">
                         <div class="flex justify-between text-sm mb-2">
-                            <span class="font-medium">Proficiency</span>
-                            <span class="text-orange-600 font-bold">92%</span>
+                            <span class="font-medium text-gray-300">Proficiency</span>
+                            <span class="text-orange-400 font-bold">92%</span>
                         </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2">
-                            <div class="bg-orange-600 h-2 rounded-full skill-bar" style="width: 0%" data-width="92%"></div>
+                        <div class="w-full bg-surface rounded-full h-2">
+                            <div class="bg-gradient-to-r from-orange-400 to-primary h-2 rounded-full skill-bar" style="width: 0%" data-width="92%"></div>
                         </div>
                     </div>
                 </div>
@@ -479,79 +584,75 @@
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" class="py-24 bg-white">
+    <section id="experience" class="py-24 relative">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 scroll-reveal">
                 <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">Career Journey</h2>
-                <h3 class="text-4xl font-bold text-dark mb-4">Professional Experience</h3>
-                <p class="text-slate-600">Progressive experience in IT support and data analytics roles</p>
+                <h3 class="text-4xl font-bold text-white mb-4">Professional Experience</h3>
+                <p class="text-gray-500">Progressive experience in IT support and data analytics</p>
             </div>
             
             <div class="relative">
-                <!-- Timeline Line -->
                 <div class="absolute left-8 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 timeline-line rounded-full"></div>
                 
-                <!-- Experience 1 - ACCENTURE (NEW) -->
+                <!-- Accenture -->
                 <div class="relative mb-12 scroll-reveal">
                     <div class="md:flex items-center justify-between">
                         <div class="md:w-5/12 md:text-right mb-4 md:mb-0 pl-20 md:pl-0">
-                            <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 hover-lift">
+                            <div class="bg-card border border-border p-6 rounded-2xl hover-lift glow-border">
                                 <span class="text-primary font-bold text-sm">Apr 2026 – Present</span>
-                                <h4 class="text-xl font-bold text-dark mt-2">SW/App/Cloud Tech Support Associate</h4>
-                                <p class="text-secondary font-medium mb-3">Accenture Solutions Pvt. Ltd. • Bengaluru</p>
-                                <ul class="text-slate-600 text-sm space-y-2">
-                                    <li>• Provide Level 1 technical support and end-user support for application, system, access, and desktop issues</li>
-                                    <li>• Manage user accounts, password resets, account unlocks, and access requests in AD and M365</li>
-                                    <li>• Handle incidents and service requests through Jira Service Management, meeting SLA targets</li>
-                                    <li>• Troubleshoot authentication failures, remote access issues, and software faults</li>
-                                    <li>• Support user onboarding and offboarding workflows with HR and IT teams</li>
+                                <h4 class="text-xl font-bold text-white mt-2">SW/App/Cloud Tech Support Associate</h4>
+                                <p class="text-gray-400 font-medium mb-3">Accenture Solutions Pvt. Ltd. • Bengaluru</p>
+                                <ul class="text-gray-400 text-sm space-y-2">
+                                    <li>• Level 1 technical support for application, system, access, and desktop issues</li>
+                                    <li>• Manage user accounts, password resets, and access requests in AD and M365</li>
+                                    <li>• Handle incidents via Jira Service Management, meeting SLA targets</li>
+                                    <li>• Troubleshoot authentication failures and remote access issues</li>
+                                    <li>• Support user onboarding/offboarding workflows with HR and IT teams</li>
                                 </ul>
                             </div>
                         </div>
-                        
-                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-primary rounded-full border-4 border-white shadow-lg z-10"></div>
-                        
+                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-primary rounded-full border-4 border-darker shadow-lg z-10"></div>
                         <div class="md:w-5/12 pl-20 md:pl-0">
                             <div class="flex items-center gap-4 md:justify-start">
-                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-primary">
-                                    <i class="fas fa-building"></i>
+                                <!-- ACCENTURE ICON IN TIMELINE -->
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden p-1">
+                                    <img src="accenture-logo.png" alt="Accenture" class="w-full h-full object-contain" 
+                                         onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-building text-[#A100FF] text-lg\'></i>';">
                                 </div>
                                 <div>
-                                    <p class="text-sm text-slate-500">Current Role</p>
-                                    <p class="font-bold text-dark">Accenture</p>
+                                    <p class="text-sm text-gray-500">Current</p>
+                                    <p class="font-bold text-white">Accenture</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Experience 2 - UNIFY CX -->
+                <!-- Unify CX -->
                 <div class="relative mb-12 scroll-reveal">
                     <div class="md:flex items-center justify-between flex-row-reverse">
                         <div class="md:w-5/12 md:text-left mb-4 md:mb-0 pl-20 md:pl-0">
-                            <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 hover-lift">
+                            <div class="bg-card border border-border p-6 rounded-2xl hover-lift glow-border">
                                 <span class="text-primary font-bold text-sm">Sep 2024 – Apr 2026</span>
-                                <h4 class="text-xl font-bold text-dark mt-2">IT Support Engineer</h4>
-                                <p class="text-secondary font-medium mb-3">Unify CX – ON24 Process • Mangalore</p>
-                                <ul class="text-slate-600 text-sm space-y-2">
-                                    <li>• Delivered Level 1 technical support for webinar platform users and enterprise clients</li>
-                                    <li>• Troubleshot live webinar issues: registration errors, login failures, audio/video faults</li>
-                                    <li>• Resolved user access issues and platform configuration requests within SLA</li>
-                                    <li>• Managed incidents via ServiceNow and Zendesk while maintaining SLA compliance</li>
-                                    <li>• Escalated complex issues to Tier 2 with detailed documentation and root cause analysis</li>
+                                <h4 class="text-xl font-bold text-white mt-2">IT Support Engineer</h4>
+                                <p class="text-gray-400 font-medium mb-3">Unify CX – ON24 Process • Mangalore</p>
+                                <ul class="text-gray-400 text-sm space-y-2">
+                                    <li>• Level 1 support for webinar platform users and enterprise clients</li>
+                                    <li>• Troubleshot live webinar issues: registration, login, audio/video</li>
+                                    <li>• Resolved access issues via ServiceNow and Zendesk within SLA</li>
+                                    <li>• Escalated complex issues to Tier 2 with detailed documentation</li>
                                 </ul>
                             </div>
                         </div>
-                        
-                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-accent rounded-full border-4 border-white shadow-lg z-10"></div>
-                        
+                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-secondary rounded-full border-4 border-darker shadow-lg z-10"></div>
                         <div class="md:w-5/12 pl-20 md:pl-0 md:text-right">
                             <div class="flex items-center gap-4 md:justify-end">
                                 <div>
-                                    <p class="text-sm text-slate-500">Previous Role</p>
-                                    <p class="font-bold text-dark">1.5 Years</p>
+                                    <p class="text-sm text-gray-500">Previous</p>
+                                    <p class="font-bold text-white">1.5 Years</p>
                                 </div>
-                                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                                <div class="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center text-secondary">
                                     <i class="fas fa-headset"></i>
                                 </div>
                             </div>
@@ -559,65 +660,60 @@
                     </div>
                 </div>
                 
-                <!-- Experience 3 - ZEPHYR -->
+                <!-- Zephyr -->
                 <div class="relative mb-12 scroll-reveal">
                     <div class="md:flex items-center justify-between">
                         <div class="md:w-5/12 md:text-right mb-4 md:mb-0 pl-20 md:pl-0">
-                            <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 hover-lift">
+                            <div class="bg-card border border-border p-6 rounded-2xl hover-lift glow-border">
                                 <span class="text-primary font-bold text-sm">Aug 2023 – Sep 2023</span>
-                                <h4 class="text-xl font-bold text-dark mt-2">Data Science Intern</h4>
-                                <p class="text-secondary font-medium mb-3">Zephyr Technologies Pvt. Ltd. • Mangalore</p>
-                                <ul class="text-slate-600 text-sm space-y-2">
-                                    <li>• Collected, cleaned, and validated datasets from multiple sources for analysis</li>
-                                    <li>• Built Power BI dashboards and Excel reports for actionable business insights</li>
-                                    <li>• Conducted data quality audits to ensure accuracy and consistency</li>
-                                    <li>• <strong>Awarded Best Intern 2023</strong></li>
+                                <h4 class="text-xl font-bold text-white mt-2">Data Science Intern</h4>
+                                <p class="text-gray-400 font-medium mb-3">Zephyr Technologies • Mangalore</p>
+                                <ul class="text-gray-400 text-sm space-y-2">
+                                    <li>• Collected, cleaned, and validated datasets for business reporting</li>
+                                    <li>• Built Power BI dashboards and Excel reports for stakeholders</li>
+                                    <li>• Conducted data quality audits for accuracy and consistency</li>
+                                    <li>• <strong class="text-primary">Awarded Best Intern 2023</strong></li>
                                 </ul>
                             </div>
                         </div>
-                        
-                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-green-500 rounded-full border-4 border-white shadow-lg z-10"></div>
-                        
+                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-green-500 rounded-full border-4 border-darker shadow-lg z-10"></div>
                         <div class="md:w-5/12 pl-20 md:pl-0">
                             <div class="flex items-center gap-4 md:justify-start">
-                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                                <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center text-green-400">
                                     <i class="fas fa-award"></i>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-slate-500">Recognition</p>
-                                    <p class="font-bold text-dark">Best Intern Award</p>
+                                    <p class="text-sm text-gray-500">Recognition</p>
+                                    <p class="font-bold text-white">Best Intern</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Experience 4 - NATS -->
+                <!-- NATS -->
                 <div class="relative scroll-reveal">
                     <div class="md:flex items-center justify-between flex-row-reverse">
                         <div class="md:w-5/12 md:text-left mb-4 md:mb-0 pl-20 md:pl-0">
-                            <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 hover-lift">
+                            <div class="bg-card border border-border p-6 rounded-2xl hover-lift glow-border">
                                 <span class="text-primary font-bold text-sm">2020 – 2024</span>
-                                <h4 class="text-xl font-bold text-dark mt-2">Apprenticeship (NATS)</h4>
-                                <p class="text-secondary font-medium mb-3">Glow Touch Technologies Pvt. Ltd.</p>
-                                <ul class="text-slate-600 text-sm space-y-2">
-                                    <li>• National Apprenticeship Training Scheme in Information Technology</li>
-                                    <li>• Software development exposure and network management</li>
+                                <h4 class="text-xl font-bold text-white mt-2">Apprenticeship (NATS)</h4>
+                                <p class="text-gray-400 font-medium mb-3">Glow Touch Technologies Pvt. Ltd.</p>
+                                <ul class="text-gray-400 text-sm space-y-2">
+                                    <li>• National Apprenticeship Training Scheme in IT</li>
+                                    <li>• Software development and network management</li>
                                     <li>• IT troubleshooting and practical industry experience</li>
-                                    <li>• Completed alongside Bachelor's degree</li>
                                 </ul>
                             </div>
                         </div>
-                        
-                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-slate-400 rounded-full border-4 border-white shadow-lg z-10"></div>
-                        
+                        <div class="absolute left-8 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-500 rounded-full border-4 border-darker shadow-lg z-10"></div>
                         <div class="md:w-5/12 pl-20 md:pl-0 md:text-right">
                             <div class="flex items-center gap-4 md:justify-end">
                                 <div>
-                                    <p class="text-sm text-slate-500">Training</p>
-                                    <p class="font-bold text-dark">NATS Certified</p>
+                                    <p class="text-sm text-gray-500">Training</p>
+                                    <p class="font-bold text-white">NATS Certified</p>
                                 </div>
-                                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                                <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400">
                                     <i class="fas fa-graduation-cap"></i>
                                 </div>
                             </div>
@@ -629,86 +725,87 @@
     </section>
 
     <!-- Projects Section -->
-    <section id="projects" class="py-24 bg-slate-50">
+    <section id="projects" class="py-24 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 scroll-reveal">
                 <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">Portfolio</h2>
-                <h3 class="text-4xl font-bold text-dark mb-4">Featured Projects</h3>
-                <p class="text-slate-600 max-w-2xl mx-auto">
-                    Demonstrating expertise in data analytics, IoT solutions, and business intelligence
-                </p>
+                <h3 class="text-4xl font-bold text-white mb-4">Featured Projects</h3>
+                <p class="text-gray-500 max-w-2xl mx-auto">Click on any project to see details</p>
             </div>
             
             <div class="grid md:grid-cols-3 gap-8">
-                <!-- Project 1 -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover-lift scroll-reveal border border-slate-100 group">
-                    <div class="h-48 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center relative overflow-hidden">
-                        <i class="fas fa-futbol text-6xl text-white/30 absolute transform group-hover:scale-110 transition-transform duration-500"></i>
-                        <div class="relative z-10 text-center text-white p-4">
-                            <i class="fas fa-chart-pie text-4xl mb-2"></i>
-                            <p class="font-bold">Power BI Dashboard</p>
+                <div class="project-card bg-card border border-border rounded-2xl overflow-hidden hover-lift scroll-reveal glow-border" onclick="openProjectModal('football')">
+                    <div class="h-48 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary to-secondary opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        <i class="fas fa-futbol text-6xl text-primary/30 absolute transform group-hover:scale-110 transition-transform duration-500"></i>
+                        <div class="relative z-10 text-center p-4">
+                            <i class="fas fa-chart-pie text-4xl mb-2 text-primary"></i>
+                            <p class="font-bold text-white">Power BI Dashboard</p>
+                            <p class="text-xs text-gray-400 mt-2"><i class="fas fa-hand-pointer mr-1"></i>Click to view</p>
                         </div>
                     </div>
                     <div class="p-6">
                         <div class="flex items-center gap-2 mb-3">
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Data Analytics</span>
-                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Sports</span>
+                            <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold">Data Analytics</span>
+                            <span class="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-xs font-semibold">Sports</span>
                         </div>
-                        <h4 class="text-xl font-bold text-dark mb-2">Football Player Performance Analysis</h4>
-                        <p class="text-slate-600 text-sm mb-4">
-                            Interactive Power BI dashboards analyzing player performance metrics, trends, and comparative analytics for coaching decisions. Features data preprocessing and validation.
+                        <h4 class="text-xl font-bold text-white mb-2">Football Player Performance Analysis</h4>
+                        <p class="text-gray-400 text-sm mb-4">
+                            Interactive Power BI dashboards analyzing player performance metrics, trends, and comparative analytics.
                         </p>
-                        <div class="flex items-center gap-4 text-sm text-slate-500 border-t border-slate-100 pt-4">
+                        <div class="flex items-center gap-4 text-sm text-gray-500 border-t border-border pt-4">
                             <span><i class="fas fa-calendar mr-1"></i> 2023</span>
                             <span><i class="fas fa-tools mr-1"></i> Power BI, Excel</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Project 2 -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover-lift scroll-reveal border border-slate-100 group" style="transition-delay: 0.1s;">
-                    <div class="h-48 bg-gradient-to-br from-green-500 to-teal-700 flex items-center justify-center relative overflow-hidden">
-                        <i class="fas fa-trash-alt text-6xl text-white/30 absolute transform group-hover:scale-110 transition-transform duration-500"></i>
-                        <div class="relative z-10 text-center text-white p-4">
-                            <i class="fas fa-microchip text-4xl mb-2"></i>
-                            <p class="font-bold">IoT System</p>
+                <div class="project-card bg-card border border-border rounded-2xl overflow-hidden hover-lift scroll-reveal glow-border" style="transition-delay: 0.1s;" onclick="openProjectModal('iot')">
+                    <div class="h-48 bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-teal-500 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        <i class="fas fa-trash-alt text-6xl text-green-500/30 absolute transform group-hover:scale-110 transition-transform duration-500"></i>
+                        <div class="relative z-10 text-center p-4">
+                            <i class="fas fa-microchip text-4xl mb-2 text-green-400"></i>
+                            <p class="font-bold text-white">IoT System</p>
+                            <p class="text-xs text-gray-400 mt-2"><i class="fas fa-hand-pointer mr-1"></i>Click to view</p>
                         </div>
                     </div>
                     <div class="p-6">
                         <div class="flex items-center gap-2 mb-3">
-                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">IoT</span>
-                            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">Python</span>
+                            <span class="px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-xs font-semibold">IoT</span>
+                            <span class="px-3 py-1 bg-purple-500/10 text-purple-400 rounded-full text-xs font-semibold">Python</span>
                         </div>
-                        <h4 class="text-xl font-bold text-dark mb-2">Smart Dustbin Monitoring</h4>
-                        <p class="text-slate-600 text-sm mb-4">
-                            IoT-based waste management system with real-time waste level tracking, automated alerts, and sensor integration. Reduced manual intervention by 50%.
+                        <h4 class="text-xl font-bold text-white mb-2">Smart Dustbin Monitoring</h4>
+                        <p class="text-gray-400 text-sm mb-4">
+                            IoT-based waste management with real-time tracking, automated alerts, and sensor integration.
                         </p>
-                        <div class="flex items-center gap-4 text-sm text-slate-500 border-t border-slate-100 pt-4">
+                        <div class="flex items-center gap-4 text-sm text-gray-500 border-t border-border pt-4">
                             <span><i class="fas fa-calendar mr-1"></i> 2024</span>
                             <span><i class="fas fa-tools mr-1"></i> Python, Sensors</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Project 3 -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover-lift scroll-reveal border border-slate-100 group" style="transition-delay: 0.2s;">
-                    <div class="h-48 bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center relative overflow-hidden">
-                        <i class="fas fa-shopping-cart text-6xl text-white/30 absolute transform group-hover:scale-110 transition-transform duration-500"></i>
-                        <div class="relative z-10 text-center text-white p-4">
-                            <i class="fas fa-chart-bar text-4xl mb-2"></i>
-                            <p class="font-bold">Business Intelligence</p>
+                <div class="project-card bg-card border border-border rounded-2xl overflow-hidden hover-lift scroll-reveal glow-border" style="transition-delay: 0.2s;" onclick="openProjectModal('ecommerce')">
+                    <div class="h-48 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        <i class="fas fa-shopping-cart text-6xl text-purple-500/30 absolute transform group-hover:scale-110 transition-transform duration-500"></i>
+                        <div class="relative z-10 text-center p-4">
+                            <i class="fas fa-chart-bar text-4xl mb-2 text-purple-400"></i>
+                            <p class="font-bold text-white">Business Intelligence</p>
+                            <p class="text-xs text-gray-400 mt-2"><i class="fas fa-hand-pointer mr-1"></i>Click to view</p>
                         </div>
                     </div>
                     <div class="p-6">
                         <div class="flex items-center gap-2 mb-3">
-                            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">E-Commerce</span>
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Power BI</span>
+                            <span class="px-3 py-1 bg-purple-500/10 text-purple-400 rounded-full text-xs font-semibold">E-Commerce</span>
+                            <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold">Power BI</span>
                         </div>
-                        <h4 class="text-xl font-bold text-dark mb-2">E-Commerce Sales Dashboard</h4>
-                        <p class="text-slate-600 text-sm mb-4">
-                            Comprehensive sales analytics platform visualizing key metrics, customer insights, and trends from multi-source data. Optimized for business decision-making.
+                        <h4 class="text-xl font-bold text-white mb-2">E-Commerce Sales Dashboard</h4>
+                        <p class="text-gray-400 text-sm mb-4">
+                            Comprehensive sales analytics visualizing key metrics, customer insights, and trends.
                         </p>
-                        <div class="flex items-center gap-4 text-sm text-slate-500 border-t border-slate-100 pt-4">
+                        <div class="flex items-center gap-4 text-sm text-gray-500 border-t border-border pt-4">
                             <span><i class="fas fa-calendar mr-1"></i> 2024</span>
                             <span><i class="fas fa-tools mr-1"></i> Power BI, SQL</span>
                         </div>
@@ -719,150 +816,122 @@
     </section>
 
     <!-- Certifications & Education -->
-    <section class="py-24 bg-white">
+    <section class="py-24 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid md:grid-cols-2 gap-16">
-                <!-- Certifications -->
                 <div class="scroll-reveal">
-                    <h3 class="text-3xl font-bold text-dark mb-8 flex items-center gap-3">
+                    <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
                         <i class="fas fa-certificate text-primary"></i>
                         Certifications
                     </h3>
                     <div class="space-y-4">
-                        <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary transition-colors">
-                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
+                        <div class="flex items-start gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary transition-colors">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
                                 <i class="fab fa-microsoft text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-dark">Microsoft Power Platform</h4>
-                                <p class="text-sm text-slate-500">Certified Master Course</p>
+                                <h4 class="font-bold text-white">Microsoft Power Platform</h4>
+                                <p class="text-sm text-gray-500">Certified Master Course</p>
                             </div>
                         </div>
-                        
-                        <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary transition-colors">
-                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 flex-shrink-0">
+                        <div class="flex items-start gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary transition-colors">
+                            <div class="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center text-red-400 flex-shrink-0">
                                 <i class="fab fa-google text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-dark">Google Analytics</h4>
-                                <p class="text-sm text-slate-500">Certified for Beginners</p>
+                                <h4 class="font-bold text-white">Google Analytics</h4>
+                                <p class="text-sm text-gray-500">Certified for Beginners</p>
                             </div>
                         </div>
-                        
-                        <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary transition-colors">
-                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 flex-shrink-0">
+                        <div class="flex items-start gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary transition-colors">
+                            <div class="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center text-orange-400 flex-shrink-0">
                                 <i class="fas fa-database text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-dark">SQL Bootcamp</h4>
-                                <p class="text-sm text-slate-500">Lets Upgrade Certification</p>
+                                <h4 class="font-bold text-white">SQL Bootcamp</h4>
+                                <p class="text-sm text-gray-500">Lets Upgrade Certification</p>
                             </div>
                         </div>
-                        
-                        <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary transition-colors">
-                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
+                        <div class="flex items-start gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary transition-colors">
+                            <div class="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-400 flex-shrink-0">
                                 <i class="fas fa-network-wired text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-dark">Internet of Things (IoT)</h4>
-                                <p class="text-sm text-slate-500">Technex'23 IIT Bombay</p>
+                                <h4 class="font-bold text-white">Internet of Things (IoT)</h4>
+                                <p class="text-sm text-gray-500">Technex'23 IIT Bombay</p>
                             </div>
                         </div>
-                        
-                        <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary transition-colors">
-                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
+                        <div class="flex items-start gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary transition-colors">
+                            <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400 flex-shrink-0">
                                 <i class="fab fa-linkedin text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-dark">IT Infrastructure Fundamentals</h4>
-                                <p class="text-sm text-slate-500">LinkedIn Learning</p>
+                                <h4 class="font-bold text-white">IT Infrastructure Fundamentals</h4>
+                                <p class="text-sm text-gray-500">LinkedIn Learning</p>
                             </div>
                         </div>
-                        
-                        <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary transition-colors">
-                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+                        <div class="flex items-start gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary transition-colors">
+                            <div class="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center text-green-400 flex-shrink-0">
                                 <i class="fas fa-clipboard-check text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-dark">ITIL Foundation</h4>
-                                <p class="text-sm text-slate-500">IT Service Management</p>
+                                <h4 class="font-bold text-white">ITIL Foundation</h4>
+                                <p class="text-sm text-gray-500">IT Service Management</p>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Awards -->
-                    <div class="mt-8 p-6 bg-gradient-to-r from-primary to-blue-600 rounded-2xl text-white">
-                        <h4 class="font-bold text-lg mb-4 flex items-center gap-2">
-                            <i class="fas fa-trophy"></i> Awards & Recognition
+                    <div class="mt-8 p-6 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl border border-primary/20">
+                        <h4 class="font-bold text-lg mb-4 flex items-center gap-2 text-white">
+                            <i class="fas fa-trophy text-primary"></i> Awards & Recognition
                         </h4>
-                        <ul class="space-y-2 text-sm text-blue-100">
-                            <li>• Best Intern Award (2023) – Zephyr Technologies Pvt. Ltd.</li>
-                            <li>• Winner – YENYOJANA'23 Mini Project Exhibition (Phone Book Project)</li>
+                        <ul class="space-y-2 text-sm text-gray-400">
+                            <li>• Best Intern Award (2023) – Zephyr Technologies</li>
+                            <li>• Winner – YENYOJANA'23 Mini Project Exhibition</li>
                             <li>• KSCST Project Recognition</li>
                         </ul>
                     </div>
                 </div>
                 
-                <!-- Education -->
                 <div class="scroll-reveal">
-                    <h3 class="text-3xl font-bold text-dark mb-8 flex items-center gap-3">
+                    <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
                         <i class="fas fa-graduation-cap text-primary"></i>
                         Education
                     </h3>
                     
                     <div class="relative pl-8 border-l-2 border-primary/20 space-y-8">
                         <div class="relative">
-                            <div class="absolute -left-[41px] w-6 h-6 bg-primary rounded-full border-4 border-white shadow-md"></div>
-                            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                            <div class="absolute -left-[41px] w-6 h-6 bg-primary rounded-full border-4 border-darker shadow-md"></div>
+                            <div class="bg-card border border-border p-6 rounded-2xl">
                                 <span class="text-primary font-bold text-sm">Jun 2020 – Jun 2024</span>
-                                <h4 class="text-xl font-bold text-dark mt-1">Bachelor of Engineering</h4>
-                                <p class="text-secondary font-medium">Information Science</p>
-                                <p class="text-slate-500 text-sm mt-2">Visvesvaraya Technological University (VTU), Karnataka</p>
+                                <h4 class="text-xl font-bold text-white mt-1">Bachelor of Engineering</h4>
+                                <p class="text-gray-400 font-medium">Information Science</p>
+                                <p class="text-gray-500 text-sm mt-2">Visvesvaraya Technological University (VTU), Karnataka</p>
                                 <div class="mt-4 flex flex-wrap gap-2">
-                                    <span class="px-3 py-1 bg-white rounded-full text-xs border border-slate-200">Database Systems</span>
-                                    <span class="px-3 py-1 bg-white rounded-full text-xs border border-slate-200">Networking</span>
-                                    <span class="px-3 py-1 bg-white rounded-full text-xs border border-slate-200">Programming</span>
-                                    <span class="px-3 py-1 bg-white rounded-full text-xs border border-slate-200">Data Analytics</span>
+                                    <span class="px-3 py-1 bg-surface rounded-full text-xs border border-border text-gray-400">Database Systems</span>
+                                    <span class="px-3 py-1 bg-surface rounded-full text-xs border border-border text-gray-400">Networking</span>
+                                    <span class="px-3 py-1 bg-surface rounded-full text-xs border border-border text-gray-400">Programming</span>
+                                    <span class="px-3 py-1 bg-surface rounded-full text-xs border border-border text-gray-400">Data Analytics</span>
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="relative">
-                            <div class="absolute -left-[41px] w-6 h-6 bg-slate-300 rounded-full border-4 border-white shadow-md"></div>
-                            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                            <div class="absolute -left-[41px] w-6 h-6 bg-gray-600 rounded-full border-4 border-darker shadow-md"></div>
+                            <div class="bg-card border border-border p-6 rounded-2xl">
                                 <span class="text-primary font-bold text-sm">Additional Training</span>
-                                <h4 class="text-xl font-bold text-dark mt-1">National Apprenticeship Training Scheme (NATS)</h4>
-                                <p class="text-secondary font-medium">Information Technology</p>
-                                <p class="text-slate-500 text-sm mt-2">Glow Touch Technologies Pvt. Ltd.</p>
-                                <p class="text-slate-600 text-sm mt-2">Practical training in software development, network management, and IT troubleshooting</p>
+                                <h4 class="text-xl font-bold text-white mt-1">National Apprenticeship (NATS)</h4>
+                                <p class="text-gray-400 font-medium">Information Technology</p>
+                                <p class="text-gray-500 text-sm mt-2">Glow Touch Technologies Pvt. Ltd.</p>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Languages -->
                     <div class="mt-8">
-                        <h4 class="font-bold text-dark mb-4">Languages</h4>
+                        <h4 class="font-bold text-white mb-4">Languages</h4>
                         <div class="flex flex-wrap gap-3">
-                            <span class="px-4 py-2 bg-blue-50 text-primary rounded-lg font-medium border border-blue-100">English</span>
-                            <span class="px-4 py-2 bg-blue-50 text-primary rounded-lg font-medium border border-blue-100">Hindi</span>
-                            <span class="px-4 py-2 bg-blue-50 text-primary rounded-lg font-medium border border-blue-100">Kannada</span>
-                        </div>
-                        <p class="text-sm text-slate-500 mt-2">Multilingual professional – Advantage for diverse workplace</p>
-                    </div>
-                    
-                    <!-- Interests -->
-                    <div class="mt-8">
-                        <h4 class="font-bold text-dark mb-4">Interests</h4>
-                        <div class="flex flex-wrap gap-3">
-                            <span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium border border-slate-200">
-                                <i class="fas fa-dumbbell mr-2 text-orange-500"></i>Gymming
-                            </span>
-                            <span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium border border-slate-200">
-                                <i class="fas fa-futbol mr-2 text-green-500"></i>Football
-                            </span>
-                            <span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium border border-slate-200">
-                                <i class="fas fa-video mr-2 text-purple-500"></i>Video Editing
-                            </span>
+                            <span class="px-4 py-2 bg-card border border-border text-gray-300 rounded-lg font-medium hover:border-primary transition-colors">English</span>
+                            <span class="px-4 py-2 bg-card border border-border text-gray-300 rounded-lg font-medium hover:border-primary transition-colors">Hindi</span>
+                            <span class="px-4 py-2 bg-card border border-border text-gray-300 rounded-lg font-medium hover:border-primary transition-colors">Kannada</span>
                         </div>
                     </div>
                 </div>
@@ -870,93 +939,138 @@
         </div>
     </section>
 
+    <!-- INTERESTS SECTION - CLICKABLE! -->
+    <section class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">Beyond Work</h2>
+                <h3 class="text-4xl font-bold text-white mb-4">My Interests</h3>
+                <p class="text-gray-500 max-w-2xl mx-auto">Click on any interest to explore more</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Football -->
+                <div class="interest-card bg-card border border-border rounded-2xl p-8 text-center scroll-reveal glow-border" onclick="openInterestModal('football')">
+                    <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-400 text-3xl mx-auto mb-4">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-2">Football</h4>
+                    <p class="text-gray-400 text-sm mb-4">Passionate about the beautiful game. Click to see my football moments.</p>
+                    <span class="inline-flex items-center gap-1 text-primary text-sm font-medium">
+                        View Gallery <i class="fas fa-arrow-right"></i>
+                    </span>
+                </div>
+                
+                <!-- Gymming -->
+                <div class="interest-card bg-card border border-border rounded-2xl p-8 text-center scroll-reveal glow-border" style="transition-delay: 0.1s;" onclick="openInterestModal('gym')">
+                    <div class="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center text-orange-400 text-3xl mx-auto mb-4">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-2">Gymming</h4>
+                    <p class="text-gray-400 text-sm mb-4">Fitness enthusiast. Click to see my fitness journey.</p>
+                    <span class="inline-flex items-center gap-1 text-primary text-sm font-medium">
+                        View Gallery <i class="fas fa-arrow-right"></i>
+                    </span>
+                </div>
+                
+                <!-- Video Editing -->
+                <div class="interest-card bg-card border border-border rounded-2xl p-8 text-center scroll-reveal glow-border" style="transition-delay: 0.2s;" onclick="openInterestModal('video')">
+                    <div class="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center text-purple-400 text-3xl mx-auto mb-4">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-2">Video Editing</h4>
+                    <p class="text-gray-400 text-sm mb-4">Creative video editing projects. Click to see my work.</p>
+                    <span class="inline-flex items-center gap-1 text-primary text-sm font-medium">
+                        View Gallery <i class="fas fa-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Contact Section -->
-    <section id="contact" class="py-24 bg-slate-900 text-white relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-900/20"></div>
-        <div class="blob bg-blue-500 w-96 h-96 rounded-full top-0 left-0 opacity-10"></div>
-        <div class="blob bg-purple-500 w-80 h-80 rounded-full bottom-0 right-0 opacity-10"></div>
+    <section id="contact" class="py-24 relative overflow-hidden">
+        <div class="blob bg-primary w-[500px] h-[500px] rounded-full -bottom-40 -left-40 opacity-10"></div>
+        <div class="blob bg-secondary w-[400px] h-[400px] rounded-full -top-20 -right-20 opacity-10"></div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="grid md:grid-cols-2 gap-16">
                 <div class="scroll-reveal">
-                    <h2 class="text-sm font-bold text-blue-400 tracking-widest uppercase mb-2">Get In Touch</h2>
-                    <h3 class="text-4xl font-bold mb-6">Let's Work Together</h3>
-                    <p class="text-slate-300 mb-8 leading-relaxed">
-                        Currently based in Bengaluru and open to IT Support, System Administration, and Service Desk opportunities across India. Available for immediate discussions and excited to contribute to your organization's digital transformation journey.
+                    <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">Get In Touch</h2>
+                    <h3 class="text-4xl font-bold text-white mb-6">Let's Work Together</h3>
+                    <p class="text-gray-400 mb-8 leading-relaxed">
+                        Currently based in Bengaluru and open to IT Support, System Administration, and Service Desk opportunities across India.
                     </p>
                     
                     <div class="space-y-6">
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center text-blue-400 text-xl">
+                            <div class="w-14 h-14 bg-card border border-border rounded-xl flex items-center justify-center text-primary text-xl">
                                 <i class="fas fa-envelope"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-slate-400">Email</p>
-                                <a href="mailto:saqlainpasha4321@gmail.com" class="text-lg font-semibold hover:text-blue-400 transition-colors">
+                                <p class="text-sm text-gray-500">Email</p>
+                                <a href="mailto:saqlainpasha4321@gmail.com" class="text-lg font-semibold text-white hover:text-primary transition-colors">
                                     saqlainpasha4321@gmail.com
                                 </a>
                             </div>
                         </div>
-                        
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center text-blue-400 text-xl">
+                            <div class="w-14 h-14 bg-card border border-border rounded-xl flex items-center justify-center text-primary text-xl">
                                 <i class="fas fa-phone"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-slate-400">Phone</p>
-                                <a href="tel:+917996849986" class="text-lg font-semibold hover:text-blue-400 transition-colors">
+                                <p class="text-sm text-gray-500">Phone</p>
+                                <a href="tel:+917996849986" class="text-lg font-semibold text-white hover:text-primary transition-colors">
                                     +91 799 684 9986
                                 </a>
                             </div>
                         </div>
-                        
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center text-blue-400 text-xl">
+                            <div class="w-14 h-14 bg-card border border-border rounded-xl flex items-center justify-center text-primary text-xl">
                                 <i class="fab fa-linkedin"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-slate-400">LinkedIn</p>
-                                <a href="https://linkedin.com/in/saqlain-pashaa" target="_blank" class="text-lg font-semibold hover:text-blue-400 transition-colors">
+                                <p class="text-sm text-gray-500">LinkedIn</p>
+                                <a href="https://linkedin.com/in/saqlain-pashaa" target="_blank" class="text-lg font-semibold text-white hover:text-primary transition-colors">
                                     linkedin.com/in/saqlain-pashaa
                                 </a>
                             </div>
                         </div>
-                        
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center text-blue-400 text-xl">
+                            <div class="w-14 h-14 bg-card border border-border rounded-xl flex items-center justify-center text-primary text-xl">
                                 <i class="fas fa-map-marker-alt"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-slate-400">Location</p>
-                                <p class="text-lg font-semibold">Bengaluru, India</p>
+                                <p class="text-sm text-gray-500">Location</p>
+                                <p class="text-lg font-semibold text-white">Bengaluru, India</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="scroll-reveal">
-                    <div class="bg-white/5 backdrop-blur-lg p-8 rounded-3xl border border-white/10">
-                        <h4 class="text-2xl font-bold mb-6">Send a Message</h4>
+                    <div class="bg-card border border-border p-8 rounded-3xl">
+                        <h4 class="text-2xl font-bold text-white mb-6">Send a Message</h4>
                         <form class="space-y-4" onsubmit="event.preventDefault(); alert('Thank you for your message! I will get back to you soon.');">
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm text-slate-400 mb-2">Name</label>
-                                    <input type="text" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-400 text-white placeholder-slate-500" placeholder="Your Name">
+                                    <label class="block text-sm text-gray-500 mb-2">Name</label>
+                                    <input type="text" class="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-white placeholder-gray-600" placeholder="Your Name">
                                 </div>
                                 <div>
-                                    <label class="block text-sm text-slate-400 mb-2">Email</label>
-                                    <input type="email" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-400 text-white placeholder-slate-500" placeholder="your@email.com">
+                                    <label class="block text-sm text-gray-500 mb-2">Email</label>
+                                    <input type="email" class="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-white placeholder-gray-600" placeholder="your@email.com">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm text-slate-400 mb-2">Subject</label>
-                                <input type="text" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-400 text-white placeholder-slate-500" placeholder="Job Opportunity / Collaboration">
+                                <label class="block text-sm text-gray-500 mb-2">Subject</label>
+                                <input type="text" class="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-white placeholder-gray-600" placeholder="Job Opportunity / Collaboration">
                             </div>
                             <div>
-                                <label class="block text-sm text-slate-400 mb-2">Message</label>
-                                <textarea rows="4" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-400 text-white placeholder-slate-500 resize-none" placeholder="Your message here..."></textarea>
+                                <label class="block text-sm text-gray-500 mb-2">Message</label>
+                                <textarea rows="4" class="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-white placeholder-gray-600 resize-none" placeholder="Your message here..."></textarea>
                             </div>
-                            <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-semibold py-4 rounded-xl transition-all transform hover:-translate-y-1 shadow-lg">
+                            <button type="submit" class="w-full bg-gradient-to-r from-primary to-secondary text-white font-semibold py-4 rounded-xl transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-primary/30">
                                 Send Message <i class="fas fa-paper-plane ml-2"></i>
                             </button>
                         </form>
@@ -967,48 +1081,82 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-slate-950 text-slate-400 py-8 border-t border-slate-800">
+    <footer class="bg-darker border-t border-border py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-sm">
                     SP
                 </div>
                 <span class="font-semibold text-white">Saqlain Pasha</span>
             </div>
-            
-            <p class="text-sm">© 2026 Saqlain Pasha. All rights reserved.</p>
-            
+            <p class="text-sm text-gray-500">© 2026 Saqlain Pasha. All rights reserved.</p>
             <div class="flex gap-4">
-                <a href="https://linkedin.com/in/saqlain-pashaa" target="_blank" class="hover:text-white transition-colors">
+                <a href="https://linkedin.com/in/saqlain-pashaa" target="_blank" class="text-gray-500 hover:text-primary transition-colors">
                     <i class="fab fa-linkedin text-xl"></i>
                 </a>
-                <a href="mailto:saqlainpasha4321@gmail.com" class="hover:text-white transition-colors">
+                <a href="mailto:saqlainpasha4321@gmail.com" class="text-gray-500 hover:text-primary transition-colors">
                     <i class="fas fa-envelope text-xl"></i>
                 </a>
-                <a href="tel:+917996849986" class="hover:text-white transition-colors">
+                <a href="tel:+917996849986" class="text-gray-500 hover:text-primary transition-colors">
                     <i class="fas fa-phone text-xl"></i>
                 </a>
             </div>
         </div>
     </footer>
 
+    <!-- ============================================ -->
+    <!-- MODALS -->
+    <!-- ============================================ -->
+
+    <!-- Interest Modal -->
+    <div id="interestModal" class="modal-overlay" onclick="closeInterestModal(event)">
+        <div class="modal-content p-8" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="text-2xl font-bold text-white"></h3>
+                <button onclick="closeInterestModal()" class="text-gray-400 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p id="modalDesc" class="text-gray-400 mb-6"></p>
+            <div id="modalImages" class="image-grid"></div>
+            <div id="modalFallback" class="hidden text-center py-12">
+                <i class="fas fa-images text-6xl text-gray-600 mb-4"></i>
+                <p class="text-gray-500">Photos coming soon!</p>
+                <p class="text-sm text-gray-600 mt-2">Add images to your repository and name them:</p>
+                <code id="modalCode" class="text-primary block mt-2 bg-surface p-2 rounded"></code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal-overlay" onclick="closeProjectModal(event)">
+        <div class="modal-content p-8" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="projectModalTitle" class="text-2xl font-bold text-white"></h3>
+                <button onclick="closeProjectModal()" class="text-gray-400 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="projectModalContent" class="text-gray-400"></div>
+        </div>
+    </div>
+
     <script>
-        // Mobile Menu Toggle
+        // ===== MOBILE MENU =====
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
         }
-        
-        // Typing Effect
+
+        // ===== TYPING EFFECT =====
         const texts = ["IT Support Engineer", "Data Analyst", "System Administrator", "Power BI Developer"];
         let textIndex = 0;
         let charIndex = 0;
         let isDeleting = false;
         const typingElement = document.getElementById('typing-text');
-        
+
         function type() {
             const currentText = texts[textIndex];
-            
             if (isDeleting) {
                 typingElement.textContent = currentText.substring(0, charIndex - 1);
                 charIndex--;
@@ -1016,9 +1164,7 @@
                 typingElement.textContent = currentText.substring(0, charIndex + 1);
                 charIndex++;
             }
-            
             let typeSpeed = isDeleting ? 50 : 100;
-            
             if (!isDeleting && charIndex === currentText.length) {
                 typeSpeed = 2000;
                 isDeleting = true;
@@ -1027,63 +1173,28 @@
                 textIndex = (textIndex + 1) % texts.length;
                 typeSpeed = 500;
             }
-            
             setTimeout(type, typeSpeed);
         }
-        
-        // Start typing effect
         type();
-        
-        // Scroll Reveal Animation
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: "0px 0px -50px 0px"
-        };
-        
+
+        // ===== SCROLL REVEAL =====
+        const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('active');
-                    
-                    // Animate skill bars if present
                     const skillBars = entry.target.querySelectorAll('.skill-bar');
                     skillBars.forEach(bar => {
                         const width = bar.getAttribute('data-width');
-                        setTimeout(() => {
-                            bar.style.width = width;
-                        }, 200);
+                        setTimeout(() => { bar.style.width = width; }, 200);
                     });
                 }
             });
         }, observerOptions);
-        
         document.querySelectorAll('.scroll-reveal').forEach((el) => observer.observe(el));
-        
-        // Navbar Scroll Effect
+
+        // ===== NAVBAR SCROLL =====
         window.addEventListener('scroll', () => {
             const navbar = document.getElementById('navbar');
             if (window.scrollY > 50) {
-                navbar.classList.add('shadow-md');
-            } else {
-                navbar.classList.remove('shadow-md');
-            }
-        });
-        
-        // Smooth Scroll for Anchor Links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                    // Close mobile menu if open
-                    document.getElementById('mobile-menu').classList.add('hidden');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+                navbar.class
